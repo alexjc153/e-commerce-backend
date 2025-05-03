@@ -1,23 +1,35 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { UsersService } from 'src/modules/users/services/users.service';
 
 import * as bcrypt from 'bcrypt';
 import { User } from '@users/entities/user.entity';
 import { PayloadToken } from '@auth/interfaces/token.interface';
 import { JwtService } from '@nestjs/jwt';
+import { RegisterUserDto } from '@auth/interfaces/register-user.dto';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    @InjectRepository(User) private readonly usersRepo: Repository<User>,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<User> {
+  async validateUser(email: string, password: string) {
     try {
-      const user = await this.usersService.findByEmail(email);
+      const user = await this.usersService.findUser({
+        email,
+      });
 
       if (!user) {
         throw new HttpException('Usuario no registrado', HttpStatus.NOT_FOUND);
@@ -29,15 +41,6 @@ export class AuthService {
           HttpStatus.UNAUTHORIZED,
         );
       }
-
-      // if (!user.userVerified) {
-      //   throw new HttpException('Usuario no verificado', HttpStatus.FORBIDDEN);
-      // }
-
-      // if (user.userBlocked) {
-      //   throw new HttpException('Usuario bloqueado', HttpStatus.FORBIDDEN);
-      // }
-
       return user;
     } catch (error) {
       this.logger.error(`Error validating user ${email}: ${error.message}`);
@@ -55,5 +58,32 @@ export class AuthService {
 
   public signJWT(payload: any, expires: number | string) {
     return this.jwtService.sign(payload, { expiresIn: expires });
+  }
+
+  async register(payload: RegisterUserDto) {
+    const emailExists = await this.usersRepo.existsBy({
+      email: payload.email,
+    });
+    if (emailExists) {
+      throw new ConflictException('El correo ya está registrado');
+    }
+
+    const verificationToken = this.jwtService.sign(
+      { email: payload.email }, // ¡Payload debe ser objeto!
+      {
+        secret: process.env.JWT_VERIFICATION_SECRET, // Usa un secreto diferente
+        expiresIn: '1h',
+      },
+    );
+
+    const user = await this.usersRepo.save({
+      ...payload,
+      password: await bcrypt.hash(payload.password, 12),
+      emailVerificationToken: verificationToken,
+    });
+
+    // await this.mailService.sendUserConfirmation(user, verificationToken);
+
+    return user;
   }
 }

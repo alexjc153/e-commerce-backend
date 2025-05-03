@@ -16,11 +16,17 @@ export class UsersController {
   @Get()
   @HttpCode(HttpStatus.ACCEPTED)
   getAll() {
-    return this.usersService.findAll();
+    return this.usersService.findUsers();
   }
 
   @Post()
   create(@Body() payload: CreateUserDto) {
     return this.usersService.create(payload);
+  }
+
+  @Post('email-availability')
+  async checkEmailAvailability(@Body('email') email: string) {
+    const exists = await this.usersService.findUser({ email });
+    return { available: !exists };
   }
 }

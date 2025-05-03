@@ -22,6 +22,12 @@ export class User {
   @Column({ type: 'varchar', length: 250 })
   password: string;
 
+  @Column({ default: false })
+  isVerified: boolean;
+
+  @Column({ nullable: true })
+  emailVerificationToken?: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
