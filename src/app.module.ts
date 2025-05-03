@@ -9,6 +9,8 @@ import { ProductsModule } from './modules/products/products.module';
 import { environments } from './environments';
 import config from './config';
 import * as Joi from 'joi';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import * as Joi from 'joi';
       synchronize: true,
     }),
     ProductsModule,
+    UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -16,6 +16,10 @@
     "noImplicitAny": false,
     "forceConsistentCasingInFileNames": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@auth/*": ["./src/modules/auth/*"],
+      "@users/*": ["./src/modules/users/*"],
+    }
   }
 }
