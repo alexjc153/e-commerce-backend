@@ -11,6 +11,8 @@ import config from './config';
 import * as Joi from 'joi';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { SeedModule } from './modules/seed/seed.module';
 
 @Module({
   imports: [
@@ -38,8 +40,10 @@ import { UsersModule } from './modules/users/users.module';
       synchronize: true,
     }),
     ProductsModule,
+    OrdersModule,
     UsersModule,
     AuthModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],

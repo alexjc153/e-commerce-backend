@@ -1,9 +1,9 @@
 import {
-  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateProductDto {
@@ -25,9 +25,13 @@ export class CreateProductDto {
 
   @IsString()
   @IsOptional()
-  readonly image: string;
+  readonly images: string[];
 
-  @IsBoolean()
-  @IsOptional()
-  readonly isActive: boolean;
+  @IsString()
+  @IsNotEmpty()
+  readonly slug: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  readonly categoryId: string;
 }

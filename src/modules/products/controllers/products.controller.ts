@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { ProductsService } from '../services/products.service';
 import { CreateProductDto } from '../dtos/product.dto';
+import { PaginationDto } from '@common/pagination.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -9,14 +10,14 @@ export class ProductsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all products' })
-  getAll() {
-    return this.productsServices.findAll();
+  getAll(@Query() paginationDto: PaginationDto) {
+    return this.productsServices.findAll(paginationDto);
   }
 
-  @Get(':uuid')
+  @Get(':term')
   @ApiOperation({ summary: 'Get product by uuid' })
-  getOne() {
-    return this.productsServices.findOne('uuid');
+  getOne(@Param('term') term: string) {
+    return this.productsServices.findOne(term);
   }
 
   @Post()

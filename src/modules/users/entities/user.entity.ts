@@ -1,3 +1,4 @@
+import { Order } from '@orders/entities/order.entity';
 import { Exclude } from 'class-transformer';
 import {
   Column,
@@ -5,6 +6,7 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -13,6 +15,12 @@ import {
 export class User {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
+
+  @Column({ type: 'varchar' })
+  firstName: string;
+
+  @Column({ type: 'varchar' })
+  lastName: string;
 
   @Column({ type: 'varchar', length: 100, unique: true })
   @Index()
@@ -36,4 +44,7 @@ export class User {
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date;
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 }

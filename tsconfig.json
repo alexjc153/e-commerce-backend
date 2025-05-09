@@ -18,8 +18,11 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
+      "@common/*": ["./src/common/*"],
       "@auth/*": ["./src/modules/auth/*"],
       "@users/*": ["./src/modules/users/*"],
+      "@products/*": ["./src/modules/products/*"],
+      "@orders/*": ["./src/modules/orders/*"]
     }
   }
 }

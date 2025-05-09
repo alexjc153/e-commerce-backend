@@ -3,15 +3,14 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Category } from './categories.entity';
+import { Product } from './products.entity';
 
-@Entity({ name: 'products' })
-export class Product {
+@Entity({ name: 'categories' })
+export class Category {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
@@ -20,18 +19,6 @@ export class Product {
 
   @Column({ type: 'text', nullable: true })
   description: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  price: number;
-
-  @Column({ type: 'int', nullable: true })
-  stock: number;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  images: string[];
-
-  @Column({ type: 'varchar', unique: true })
-  slug: string;
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
@@ -45,7 +32,6 @@ export class Product {
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date;
 
-  @ManyToOne(() => Category, (category) => category.products)
-  @JoinColumn({ name: 'category_id' })
-  category: Category;
+  @OneToMany(() => Product, (product) => product.category)
+  products: Product[];
 }
