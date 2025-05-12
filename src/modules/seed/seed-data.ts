@@ -62,7 +62,7 @@ export const initialData: SeedData = {
       images: [],
     },
     {
-      name: 'Unidad en estado solido Kingston 1000GB NV3 PCIe 4.0 NVMe M.2 SSD',
+      name: 'Unidad de estado solido Kingston 1000GB NV3 PCIe 4.0 NVMe M.2 SSD',
       description:
         'Velocidad de Lectura 6000MB/S Velocidad de escritura 4000 MB/S',
       price: 310,
@@ -78,7 +78,7 @@ export const initialData: SeedData = {
       images: [],
     },
     {
-      name: 'Unidad en estado solido Kingston FURY Renegade 1TB, M.2 2280 PCIe 4.0 x4 NVMe.',
+      name: 'Unidad de estado solido Kingston FURY Renegade 1TB, M.2 2280 PCIe 4.0 x4 NVMe.',
       description:
         'Velocidad de escritura 6000 MB/s, Velocidad de lectura 7300 MB/s, Controlador Phison E18, NAND 3D TLC, Con Disipador termico de aluminio. Dimensiones: 8.00 cm x 2.20 cm x 0.22 cm / Peso: 32.1 gr.',
       price: 560,
