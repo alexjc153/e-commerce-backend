@@ -24,8 +24,8 @@ export class PaginationDto {
 
   @ApiProperty({
     default: '',
-    description: 'Filter results by gender',
+    description: 'Filter results by category',
   })
   @IsOptional()
-  gender: 'men' | 'women' | 'unisex' | 'kid';
+  category: string;
 }

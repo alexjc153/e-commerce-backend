@@ -27,7 +27,7 @@ export class Product {
   @Column({ type: 'int', nullable: true })
   stock: number;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'text', array: true, default: [] })
   images: string[];
 
   @Column({ type: 'varchar', unique: true })

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from '../entities/products.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateProductDto } from '../dtos/product.dto';
 import { Category } from '@products/entities/categories.entity';
 import { PaginationDto } from '@common/pagination.dto';
@@ -25,19 +25,31 @@ export class ProductsService {
   ) {}
 
   async findAll(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0 } = paginationDto;
+    const { limit = 10, offset = 0, category = '' } = paginationDto;
+
+    const whereConditions = category
+      ? {
+          category: {
+            name: ILike(`%${category}%`),
+          },
+        }
+      : {};
+
     const products = await this.productsRepository.find({
       take: limit,
       skip: offset,
-      // relations: {
-      //   images: true,
-      // },
+      relations: {
+        category: true,
+      },
       order: {
         name: 'ASC',
       },
+      where: whereConditions,
     });
 
-    const totalProducts = await this.productsRepository.count();
+    const totalProducts = await this.productsRepository.count({
+      where: whereConditions,
+    });
 
     return {
       count: totalProducts,

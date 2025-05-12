@@ -38,6 +38,9 @@ import { SeedModule } from './modules/seed/seed.module';
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
       synchronize: true,
+      ssl: {
+        rejectUnauthorized: false, // Esto es necesario para Render.com
+      },
     }),
     ProductsModule,
     OrdersModule,
