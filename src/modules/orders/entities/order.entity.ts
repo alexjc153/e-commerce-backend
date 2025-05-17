@@ -12,7 +12,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { OrderProducts } from './order-products.entity';
-import { Product } from '@products/entities/products.entity';
 
 @Entity({ name: 'orders' })
 export class Order {
@@ -40,5 +39,5 @@ export class Order {
   user: User;
 
   @OneToMany(() => OrderProducts, (product) => product.order)
-  products: Product[];
+  orderProducts: OrderProducts[];
 }
