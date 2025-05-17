@@ -10,11 +10,16 @@ import { OrderProducts } from '@orders/entities/order-products.entity';
 import { Order } from '@orders/entities/order.entity';
 import { Product } from '@products/entities/products.entity';
 import { User } from '@users/entities/user.entity';
+import { customAlphabet } from 'nanoid';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger('OrdersService');
+  private readonly nanoid = customAlphabet(
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+    4,
+  );
 
   constructor(
     @InjectRepository(Order)
@@ -74,7 +79,7 @@ export class OrdersService {
       }
 
       // Generar el número de orden
-      const orderNumber = await this.generateOrderNumber();
+      const orderNumber = this.generateOrderNumber();
 
       // Crear la orden
       const order = new Order();
@@ -105,18 +110,21 @@ export class OrdersService {
   }
 
   // Genera el número de orden incremental
-  private async generateOrderNumber(): Promise<number> {
+  private generateOrderNumber() {
     try {
-      const lastOrder = await this.ordersRepository
-        .createQueryBuilder('order')
-        .select('COALESCE(MAX(order.order_number), 0)', 'maxOrderNumber')
-        .getRawOne();
+      const now = new Date();
+      const year = now.getFullYear().toString().slice(-2);
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      const day = now.getDate().toString().padStart(2, '0');
+      const nanoidPart = this.nanoid();
 
-      return lastOrder.maxOrderNumber + 1;
+      const orderNumber = `${year}${nanoidPart}${month}${day}`;
+
+      return orderNumber;
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error('Error generando número de orden', error);
       throw new InternalServerErrorException(
-        'Error al generar el número de orden',
+        'No se pudo generar el número de orden',
       );
     }
   }

@@ -20,8 +20,8 @@ export class Order {
   uuid: string;
 
   @Index()
-  @Column({ type: 'int', unique: true })
-  order_number: number;
+  @Column({ type: 'varchar', unique: true })
+  order_number: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   total: number;
