@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateOrderDto } from '@orders/dtos/order.dto';
 import { OrdersService } from '@orders/services/orders.service';
@@ -11,6 +11,12 @@ export class OrdersController {
   @ApiOperation({ summary: 'Get all orders' })
   getAll() {
     return this.ordersService.findAll();
+  }
+
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Get all orders by user' })
+  getByUser(@Param('userId') userId: string) {
+    return this.ordersService.findByUser(userId);
   }
 
   @Post()
