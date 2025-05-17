@@ -37,6 +37,28 @@ export class OrdersService {
     }
   }
 
+  async findByUser(userId: string) {
+    try {
+      const orders = await this.ordersRepository.find({
+        where: {
+          user: { uuid: userId },
+        },
+        relations: {
+          orderProducts: {
+            product: true,
+          },
+        },
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+      return orders;
+    } catch (error) {
+      this.logger.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
   async create(payload: CreateOrderDto): Promise<Order> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
