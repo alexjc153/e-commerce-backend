@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ecommerce-nestjs-app
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_*01
+      - DB_NAME=EcommerceDB
+      - DB_USE_SSL=false
+      - DB_SSL_REJECT_UNAUTHORIZED=false
+      - JWT_SECRET=smartsolutions**2024
+      - JWT_REFRESH=smartsolutionsRefresh**2024
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+
+  postgres:
+    image: postgres:latest
+    container_name: ecommerce-postgres
+    environment:
+      POSTGRES_DB: EcommerceDB
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_*01
+    ports:
+      - "5000:5432"
+    volumes:
+      - ecommerce-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  ecommerce-pgdata:

@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
@@ -27,6 +28,14 @@ export class UsersService {
   //     return error;
   //   }
   // }
+
+  async getUserById(id: string) {
+    const user = await this.findUser({ uuid: id });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+    return user;
+  }
 
   // Método único para buscar usuario (reutilizable)
   async findUsers(where?: FindOptionsWhere<User>, select?: (keyof User)[]) {

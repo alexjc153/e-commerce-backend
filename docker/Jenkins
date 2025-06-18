@@ -1,0 +1,100 @@
+pipeline {
+    agent any
+
+    tools {
+        // Asegúrate de tener una instalación de Node.js configurada en Jenkins
+        // con el nombre 'NODEJS_18_LTS' (o el que uses).
+        nodejs 'NODEJS_HOME'
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                timeout(time: 15, unit: 'MINUTES') {
+                    git branch: 'main', url: 'https://github.com/alexjc153/e-commerce-backend.git' // Reemplaza con tu URL
+                }
+            }
+        }
+
+        stage('Install Dependencies & Build') {
+            steps {
+                timeout(time: 10, unit: 'MINUTES') { // Aumentado el tiempo por si las dependencias son muchas
+                    sh "npm install"
+                    sh "npm run build" // Comando típico para construir un proyecto NestJS
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                timeout(time: 10, unit: 'MINUTES') { // Ajusta según la duración de tus tests
+                    // 'npm test' ejecuta los tests definidos en package.json.
+                    // Si quieres cobertura para SonarQube, usa un script que la genere (ej: test:cov).
+                    // NestJS con Jest usualmente genera reportes en formato lcov que SonarQube puede usar.
+                    sh "npm run test:cov" // Asume que tienes un script 'test:cov' que genera cobertura
+                }
+            }
+            // Opcional: Publicar resultados de pruebas si tu framework los genera en formato JUnit
+            // post {
+            //     always {
+            //         junit 'reports/junit.xml' // Ajusta la ruta a tus reportes JUnit
+            //     }
+            // }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh "npx sonarqube-scanner"
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                // El sleep puede o no ser necesario dependiendo de cuán rápido SonarQube procese el análisis.
+                // Para proyectos pequeños podría ser casi inmediato.
+                // sleep(time: 15, unit: 'SECONDS') // Aumentado ligeramente por si acaso
+
+                timeout(time: 10, unit: 'MINUTES') {
+                    // El webhook es una mejor opción que el polling con sleep.
+                    // Configura un webhook en SonarQube para notificar a Jenkins.
+                    // Si no usas webhook, waitForQualityGate sondeará.
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Deploy') {
+            // Esta etapa es muy dependiente de tu infraestructura de despliegue
+            // (ej. Docker, PM2, Serverless, K8s, etc.)
+            steps {
+                echo "Comando de deploy para NestJS sería algo como:"
+                echo "pm2 restart e-commerce-backend-nestjs"
+                echo "O construir y pushear una imagen Docker, etc."
+                // Ejemplo:
+                // sh "docker build -t tu_usuario/tu_proyecto_nestjs ."
+                // sh "docker push tu_usuario/tu_proyecto_nestjs"
+                // O si despliegas en un servidor directamente:
+                // ssh user@server 'cd /ruta/a/tu/app && npm run start:prod'
+            }
+        }
+    }
+
+    // Opcional: Acciones post-build que se ejecutan siempre, independientemente del resultado
+    // post {
+    //     always {
+    //         echo 'Pipeline finalizado.'
+    //         // Limpiar el workspace
+    //         // cleanWs()
+    //     }
+    //     success {
+    //         echo 'Pipeline ejecutado con éxito!'
+    //         // Enviar notificación de éxito
+    //     }
+    //     failure {
+    //         echo 'Pipeline falló.'
+    //         // Enviar notificación de fallo
+    //     }
+    // }
+}

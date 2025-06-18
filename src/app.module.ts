@@ -27,6 +27,10 @@ import { SeedModule } from './modules/seed/seed.module';
         DB_PORT: Joi.number().required(),
         DB_HOST: Joi.string().required(),
         JWT_SECRET: Joi.string().required(),
+        DB_USE_SSL: Joi.string().valid('true', 'false').default('false'),
+        DB_SSL_REJECT_UNAUTHORIZED: Joi.string()
+          .valid('true', 'false')
+          .default('false'),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -38,9 +42,11 @@ import { SeedModule } from './modules/seed/seed.module';
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
       synchronize: true,
-      ssl: {
-        rejectUnauthorized: false, // Esto es necesario para Render.com
-      },
+      ...(process.env.DB_USE_SSL === 'true' && {
+        ssl: {
+          rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true',
+        },
+      }),
     }),
     ProductsModule,
     OrdersModule,

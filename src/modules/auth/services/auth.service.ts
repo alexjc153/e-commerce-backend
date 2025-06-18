@@ -69,9 +69,9 @@ export class AuthService {
     }
 
     const verificationToken = this.jwtService.sign(
-      { email: payload.email }, // ¡Payload debe ser objeto!
+      { email: payload.email },
       {
-        secret: process.env.JWT_VERIFICATION_SECRET, // Usa un secreto diferente
+        secret: process.env.JWT_SECRET,
         expiresIn: '1h',
       },
     );
@@ -81,9 +81,17 @@ export class AuthService {
       password: await bcrypt.hash(payload.password, 12),
       emailVerificationToken: verificationToken,
     });
-
     // await this.mailService.sendUserConfirmation(user, verificationToken);
+    return user;
+  }
 
+  async getUserByToken(token: string) {
+    const decoded = this.jwtService.verify(token, {
+      secret: process.env.JWT_SECRET,
+    });
+    const user = await this.usersService.findUser({
+      email: decoded.email,
+    });
     return user;
   }
 }

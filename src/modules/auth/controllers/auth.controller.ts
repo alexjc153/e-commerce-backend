@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Post,
   Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
@@ -28,5 +29,13 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() payload: RegisterUserDto) {
     return this.authService.register(payload);
+  }
+
+  @Post('get-user-by-token')
+  async getUserByToken(@Req() req: Request) {
+    if (req.header('Authorization') === undefined) return false;
+    const token = req.header('Authorization').split(' ')[1];
+    if (!token) throw new UnauthorizedException();
+    return this.authService.getUserByToken(token);
   }
 }

@@ -25,7 +25,7 @@ export class ProductsService {
   ) {}
 
   async findAll(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0, category = '' } = paginationDto;
+    const { limit, offset, category } = paginationDto;
 
     const whereConditions = category
       ? {
