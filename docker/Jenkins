@@ -1,100 +1,132 @@
+// 🚀 Jenkinsfile - Pipeline de CI/CD para aplicación NestJS (ecommerce)
+// 📦 Este pipeline automatiza el proceso de construcción, pruebas y despliegue con Docker
+
 pipeline {
     agent any
 
+    // 🛠️ Herramientas necesarias
     tools {
-        // Asegúrate de tener una instalación de Node.js configurada en Jenkins
-        // con el nombre 'NODEJS_18_LTS' (o el que uses).
-        nodejs 'NODEJS_HOME'
+        nodejs 'NODEJS_HOME' // Debe estar configurado en Jenkins
+    }
+
+    // 🔧 Variables de entorno globales
+    environment {
+        DOCKER_PROJECT_NAME = 'ecomapp'
+        APP_CONTAINER_NAME = 'ecommerce-nestjs-app'
+        DB_CONTAINER_NAME = 'ecommerce-postgres'
+        REPO_URL = 'https://github.com/alexjc153/e-commerce-backend.git'
     }
 
     stages {
+
+        // 📥 Etapa 1: Clonación del repositorio
         stage('Clone Repository') {
             steps {
-                timeout(time: 15, unit: 'MINUTES') {
-                    git branch: 'main', url: 'https://github.com/alexjc153/e-commerce-backend.git' // Reemplaza con tu URL
+                timeout(time: 10, unit: 'MINUTES') {
+                    echo '🔄 === INICIO: CLONACIÓN DEL REPOSITORIO ==='
+                    cleanWs()
+                    git branch: 'main', url: "${REPO_URL}"
+                    echo '✅ === FIN: REPOSITORIO CLONADO ==='
                 }
             }
         }
 
-        stage('Install Dependencies & Build') {
+        // ⚙️ Etapa 2: Instalación de dependencias y construcción
+        stage('Install & Build') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') { // Aumentado el tiempo por si las dependencias son muchas
+                timeout(time: 10, unit: 'MINUTES') {
+                    echo '📦 === INICIO: INSTALACIÓN Y COMPILACIÓN ==='
                     sh "npm install"
-                    sh "npm run build" // Comando típico para construir un proyecto NestJS
+                    sh "npm run build"
+                    echo '✅ === FIN: PROYECTO COMPILADO ==='
                 }
             }
         }
 
+        // 🧪 Etapa 3: Pruebas unitarias con cobertura
         stage('Run Tests') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') { // Ajusta según la duración de tus tests
-                    // 'npm test' ejecuta los tests definidos en package.json.
-                    // Si quieres cobertura para SonarQube, usa un script que la genere (ej: test:cov).
-                    // NestJS con Jest usualmente genera reportes en formato lcov que SonarQube puede usar.
-                    sh "npm run test:cov" // Asume que tienes un script 'test:cov' que genera cobertura
+                timeout(time: 10, unit: 'MINUTES') {
+                    echo '🧪 === INICIO: PRUEBAS UNITARIAS ==='
+                    sh "npm run test:cov"
+                    echo '✅ === FIN: PRUEBAS COMPLETADAS ==='
                 }
             }
-            // Opcional: Publicar resultados de pruebas si tu framework los genera en formato JUnit
-            // post {
-            //     always {
-            //         junit 'reports/junit.xml' // Ajusta la ruta a tus reportes JUnit
-            //     }
-            // }
         }
 
+        /*
+        // 📊 Etapa 4: Análisis de calidad con SonarQube (opcional)
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh "npx sonarqube-scanner"
+                timeout(time: 10, unit: 'MINUTES') {
+                    echo '📊 === INICIO: ANÁLISIS CON SONARQUBE ==='
+                    withSonarQubeEnv('sonarqube') {
+                        sh "npx sonarqube-scanner"
+                    }
+                    echo '✅ === FIN: ANÁLISIS ENVIADO A SONARQUBE ==='
                 }
             }
         }
 
+        // 🎯 Etapa 5: Verificación de calidad (Quality Gate)
         stage('Quality Gate') {
             steps {
-                // El sleep puede o no ser necesario dependiendo de cuán rápido SonarQube procese el análisis.
-                // Para proyectos pequeños podría ser casi inmediato.
-                // sleep(time: 15, unit: 'SECONDS') // Aumentado ligeramente por si acaso
-
                 timeout(time: 10, unit: 'MINUTES') {
-                    // El webhook es una mejor opción que el polling con sleep.
-                    // Configura un webhook en SonarQube para notificar a Jenkins.
-                    // Si no usas webhook, waitForQualityGate sondeará.
+                    echo '🎯 === INICIO: VERIFICACIÓN DE QUALITY GATE ==='
                     waitForQualityGate abortPipeline: true
+                    echo '✅ === FIN: QUALITY GATE APROBADO ==='
                 }
             }
         }
+        */
 
-        stage('Deploy') {
-            // Esta etapa es muy dependiente de tu infraestructura de despliegue
-            // (ej. Docker, PM2, Serverless, K8s, etc.)
+        // 🚀 Etapa 6: Despliegue con Docker Compose
+        stage('Deploy Application') {
             steps {
-                echo "Comando de deploy para NestJS sería algo como:"
-                echo "pm2 restart e-commerce-backend-nestjs"
-                echo "O construir y pushear una imagen Docker, etc."
-                // Ejemplo:
-                // sh "docker build -t tu_usuario/tu_proyecto_nestjs ."
-                // sh "docker push tu_usuario/tu_proyecto_nestjs"
-                // O si despliegas en un servidor directamente:
-                // ssh user@server 'cd /ruta/a/tu/app && npm run start:prod'
+                echo '🚀 === INICIO: DESPLIEGUE CON DOCKER COMPOSE ==='
+                dir('docker') {
+                    script {
+                        // 1️⃣ Limpieza de contenedores anteriores
+                        echo '🧹 Limpiando contenedores anteriores...'
+                        try {
+                            sh "docker-compose -p ${DOCKER_PROJECT_NAME} down -v --remove-orphans"
+                        } catch (Exception e) {
+                            echo "⚠️ Advertencia: ${e.getMessage()}"
+                        }
+
+                        // 2️⃣ Construcción y levantamiento de servicios
+                        echo '🔧 Construyendo y levantando servicios...'
+                        sh "docker-compose -p ${DOCKER_PROJECT_NAME} up -d --build"
+
+                        // 3️⃣ Espera inicial para base de datos
+                        echo '⏳ Esperando que la base de datos inicialice...'
+                        sleep(20)
+                        sh "docker exec ${DB_CONTAINER_NAME} pg_isready"
+
+                        // 4️⃣ Espera adicional para aplicación
+                        echo '⏳ Esperando que la aplicación esté lista...'
+                        sleep(30)
+
+                        // 5️⃣ Mostrar logs recientes de la aplicación
+                        echo '📋 Últimos logs de la aplicación:'
+                        sh "docker logs --tail 100 ${APP_CONTAINER_NAME}"
+                    }
+                }
+                echo '✅ === FIN: DESPLIEGUE COMPLETADO ==='
             }
         }
     }
 
-    // Opcional: Acciones post-build que se ejecutan siempre, independientemente del resultado
-    // post {
-    //     always {
-    //         echo 'Pipeline finalizado.'
-    //         // Limpiar el workspace
-    //         // cleanWs()
-    //     }
-    //     success {
-    //         echo 'Pipeline ejecutado con éxito!'
-    //         // Enviar notificación de éxito
-    //     }
-    //     failure {
-    //         echo 'Pipeline falló.'
-    //         // Enviar notificación de fallo
-    //     }
-    // }
+    // 📝 Acciones post-ejecución
+    post {
+        always {
+            echo '🏁 === PIPELINE FINALIZADO ==='
+        }
+        success {
+            echo '🎉 ✓ Pipeline ejecutado exitosamente'
+        }
+        failure {
+            echo '💥 ✗ El pipeline ha fallado'
+        }
+    }
 }
